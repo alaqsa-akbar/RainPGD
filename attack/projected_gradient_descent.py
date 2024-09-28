@@ -119,51 +119,18 @@ class ProjectedGradientDescent(EvasionAttack):
         self.verbose = verbose
         ProjectedGradientDescent._check_params(self)
 
-        self._attack: Union[
-            ProjectedGradientDescentPyTorch, ProjectedGradientDescentTensorFlowV2, ProjectedGradientDescentNumpy
-        ]
-        if isinstance(self.estimator, PyTorchClassifier) and self.estimator.all_framework_preprocessing:
-            self._attack = ProjectedGradientDescentPyTorch(
-                estimator=estimator,  # type: ignore
-                rain=rain,
-                norm=norm,
-                eps=eps,
-                eps_step=eps_step,
-                max_iter=max_iter,
-                targeted=targeted,
-                num_random_init=num_random_init,
-                batch_size=batch_size,
-                random_eps=random_eps,
-                verbose=verbose,
-            )
-
-        elif isinstance(self.estimator, TensorFlowV2Classifier) and self.estimator.all_framework_preprocessing:
-            self._attack = ProjectedGradientDescentTensorFlowV2(
-                estimator=estimator,  # type: ignore
-                norm=norm,
-                eps=eps,
-                eps_step=eps_step,
-                max_iter=max_iter,
-                targeted=targeted,
-                num_random_init=num_random_init,
-                batch_size=batch_size,
-                random_eps=random_eps,
-                verbose=verbose,
-            )
-
-        else:
-            self._attack = ProjectedGradientDescentNumpy(
-                estimator=estimator,
-                norm=norm,
-                eps=eps,
-                eps_step=eps_step,
-                max_iter=max_iter,
-                targeted=targeted,
-                num_random_init=num_random_init,
-                batch_size=batch_size,
-                random_eps=random_eps,
-                verbose=verbose,
-            )
+        self._attack = ProjectedGradientDescentNumpy(
+            estimator=estimator,
+            norm=norm,
+            eps=eps,
+            eps_step=eps_step,
+            max_iter=max_iter,
+            targeted=targeted,
+            num_random_init=num_random_init,
+            batch_size=batch_size,
+            random_eps=random_eps,
+            verbose=verbose,
+        )
 
     def generate(self, x: np.ndarray, y: Optional[np.ndarray] = None, **kwargs) -> np.ndarray:
         """

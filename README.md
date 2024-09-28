@@ -1,0 +1,2 @@
+# RainPGD
+RainPGD is an algorithm optimized for generating adversarial patches robust against rain. It is a modification on the alogrithm found in Adversarial Robustness Toolbox. The algorithm is a modified projected gradient descent which augments the target image by randomly simulating rain over it using OpenCV.
