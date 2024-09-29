@@ -24,22 +24,25 @@ def adjust_brightness(image, factor):
     return (image * factor).astype(np.uint8)
 
 
-def screen_blend(image, mask):
+def screen_blend(image, mask, normalized=False):
     # Normalize image and mask to the range [0, 1]
-    # image_norm = image.astype(np.float32) / 255.0
-    image_norm = image
+    if not normalized:
+        image_norm = image.astype(np.float32) / 255.0
+    else:
+        image_norm = image
     mask_norm = mask.astype(np.float32) / 255.0
 
     # Apply the screen blending algorithm
     result = 1 - (1 - image_norm) * (1 - mask_norm)
-    #
-    # # Denormalize the result back to the range [0, 255]
-    # result = (result * 255).astype(np.uint8)
+    
+    # Denormalize the result back to the range [0, 255]
+    if not normalized:
+        result = (result * 255).astype(np.uint8)
 
     return result
 
 
-def add_rain(image, rain_type='weak'):
+def add_rain(image, rain_type='weak', normalized=False):
     strengths = {'weak': 0.002, 'heavy': 0.004, 'torrential': 0.006}
     rain_strength = strengths[rain_type.lower()]
 
@@ -74,6 +77,6 @@ def add_rain(image, rain_type='weak'):
     darkened_image = adjust_brightness(image, 0.7)
 
     # Use the screen blend algorithm to apply the mask to the image
-    image_rain = screen_blend(darkened_image, mask)
+    image_rain = screen_blend(darkened_image, mask, normalized)
 
     return image_rain

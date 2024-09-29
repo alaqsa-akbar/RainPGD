@@ -62,6 +62,7 @@ class ProjectedGradientDescentCommon(FastGradientMethod):
         self,
         estimator: Union["CLASSIFIER_LOSS_GRADIENTS_TYPE", "OBJECT_DETECTOR_TYPE"],
         rain: bool = False,
+        rain_prob: float = 0.7,
         norm: Union[int, float, str] = np.inf,
         eps: Union[int, float, np.ndarray] = 0.3,
         eps_step: Union[int, float, np.ndarray] = 0.1,
@@ -77,6 +78,7 @@ class ProjectedGradientDescentCommon(FastGradientMethod):
 
         :param estimator: A trained classifier.
         :param rain: A boolean that trains the patch to be rain robust
+        :param rain_prob: The probability of rain being applied to the image
         :param norm: The norm of the adversarial perturbation supporting "inf", np.inf, 1 or 2.
         :param eps: Maximum perturbation that the attacker can introduce.
         :param eps_step: Attack step size (input variation) at each iteration.
@@ -94,6 +96,7 @@ class ProjectedGradientDescentCommon(FastGradientMethod):
         super().__init__(
             estimator=estimator,  # type: ignore
             rain=rain,
+            rain_prob=rain_prob,
             norm=norm,
             eps=eps,
             eps_step=eps_step,
@@ -230,6 +233,7 @@ class ProjectedGradientDescentNumpy(ProjectedGradientDescentCommon):
         self,
         estimator: Union["CLASSIFIER_LOSS_GRADIENTS_TYPE", "OBJECT_DETECTOR_TYPE"],
         rain: bool = False,
+        rain_prob: float = 0.7,
         norm: Union[int, float, str] = np.inf,
         eps: Union[int, float, np.ndarray] = 0.3,
         eps_step: Union[int, float, np.ndarray] = 0.1,
@@ -245,6 +249,7 @@ class ProjectedGradientDescentNumpy(ProjectedGradientDescentCommon):
 
         :param estimator: An trained estimator.
         :param rain: A boolean that trains the patch to be rain robust
+        :param rain_prob: The probability of rain being applied to the image
         :param norm: The norm of the adversarial perturbation supporting "inf", np.inf, 1 or 2.
         :param eps: Maximum perturbation that the attacker can introduce.
         :param eps_step: Attack step size (input variation) at each iteration.
@@ -262,6 +267,7 @@ class ProjectedGradientDescentNumpy(ProjectedGradientDescentCommon):
         super().__init__(
             estimator=estimator,
             rain=rain,
+            rain_prob=rain_prob,
             norm=norm,
             eps=eps,
             eps_step=eps_step,

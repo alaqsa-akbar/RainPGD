@@ -71,6 +71,7 @@ class FastGradientMethod(EvasionAttack):
         self,
         estimator: "CLASSIFIER_LOSS_GRADIENTS_TYPE",
         rain: bool = False,
+        rain_prob: float = 0.7,
         norm: Union[int, float, str] = np.inf,
         eps: Union[int, float, np.ndarray] = 0.3,
         eps_step: Union[int, float, np.ndarray] = 0.1,
@@ -84,6 +85,7 @@ class FastGradientMethod(EvasionAttack):
 
         :param estimator: A trained classifier.
         :param rain: A boolean that trains the patch to be rain robust
+        :param rain_prob: The probability of rain being applied to the image
         :param norm: The norm of the adversarial perturbation. Possible values: "inf", np.inf, 1 or 2.
         :param eps: Attack step size (input variation).
         :param eps_step: Step size of input variation for minimal perturbation computation.
@@ -96,6 +98,7 @@ class FastGradientMethod(EvasionAttack):
         """
         super().__init__(estimator=estimator)
         self.rain = rain
+        self.rain_prob = rain_prob
         self.norm = norm
         self.eps = eps
         self.eps_step = eps_step
@@ -371,9 +374,9 @@ class FastGradientMethod(EvasionAttack):
 
         if self.rain:
             rain_type = np.random.choice(['weak', 'heavy', 'torrential'])
-            if np.random.random() <= 0.7:
+            if np.random.random() <= self.rain_prob:
                 for i in range(len(batch)):
-                    batch[i] = add_rain(batch[i], rain_type=rain_type)
+                    batch[i] = add_rain(batch[i], rain_type=rain_type, normalized=True)
 
         # Pick a small scalar to avoid division by 0
         tol = 10e-8

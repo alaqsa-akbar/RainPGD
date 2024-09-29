@@ -3,15 +3,21 @@ import os
 from PIL import Image
 import numpy as np
 from tqdm import tqdm
+import argparse
+
+parser = argparse.ArgumentParser(description="Generating Adversarial Dataset")
+parser.add_argument("-f", "--folder", type=str, default='./SegmentAndComplete/data/train2017', help='folder containing images')
+parser.add_argument("-n", "--name", type=str, default='rain', help='name of the dataset')
 
 # Define the input and output directories
-input_dir = './SegmentAndComplete/data/train2017'
+input_dir = parser.parse_args().folder
 output_base_dir = './data'
+name = parser.parse_args().name
 
 # Create output directories if they don't exist
 rain_types = ['weak', 'heavy', 'torrential']
 for rain_type in rain_types:
-    output_dir = os.path.join(output_base_dir, rain_type)
+    output_dir = os.path.join(output_base_dir, name, rain_type)
     os.makedirs(output_dir, exist_ok=True)
 
 # Process each image in the input directory
@@ -40,7 +46,7 @@ for filename in tqdm(os.listdir(input_dir)):
             processed_image = Image.fromarray(processed_image_np)
 
             # Save the processed image to the corresponding directory
-            output_path = os.path.join(output_base_dir, rain_type, filename)
+            output_path = os.path.join(output_base_dir, name, rain_type, filename)
             processed_image.save(output_path)
 
         # print(f"Processed {filename}")

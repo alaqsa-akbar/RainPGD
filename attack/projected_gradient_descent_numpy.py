@@ -78,7 +78,7 @@ class ProjectedGradientDescentCommon(FastGradientMethod):
 
         :param estimator: A trained classifier.
         :param rain: A boolean that trains the patch to be rain robust
-        :param rain_prob: The probability of the patch being rain robust
+        :param rain_prob: The probability of rain being applied to the image 
         :param norm: The norm of the adversarial perturbation supporting "inf", np.inf, 1 or 2.
         :param eps: Maximum perturbation that the attacker can introduce.
         :param eps_step: Attack step size (input variation) at each iteration.

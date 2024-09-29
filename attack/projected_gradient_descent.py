@@ -77,6 +77,7 @@ class ProjectedGradientDescent(EvasionAttack):
         self,
         estimator: "CLASSIFIER_LOSS_GRADIENTS_TYPE",
         rain: bool = False,
+        rain_prob: float = 0.7,
         norm: Union[int, float, str] = np.inf,
         eps: Union[int, float, np.ndarray] = 0.3,
         eps_step: Union[int, float, np.ndarray] = 0.1,
@@ -92,6 +93,7 @@ class ProjectedGradientDescent(EvasionAttack):
 
         :param estimator: An trained estimator.
         :param rain: A boolean that trains the patch to be rain robust
+        :param rain_prob: The probability of the patch being rain robust
         :param norm: The norm of the adversarial perturbation supporting "inf", np.inf, 1 or 2.
         :param eps: Maximum perturbation that the attacker can introduce.
         :param eps_step: Attack step size (input variation) at each iteration.
@@ -108,6 +110,7 @@ class ProjectedGradientDescent(EvasionAttack):
         """
         super().__init__(estimator=estimator)
         self.rain = rain
+        self.rain_prob = rain_prob
         self.norm = norm
         self.eps = eps
         self.eps_step = eps_step
@@ -121,6 +124,8 @@ class ProjectedGradientDescent(EvasionAttack):
 
         self._attack = ProjectedGradientDescentNumpy(
             estimator=estimator,
+            rain=rain,
+            rain_prob=rain_prob,
             norm=norm,
             eps=eps,
             eps_step=eps_step,

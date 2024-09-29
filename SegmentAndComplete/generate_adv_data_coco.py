@@ -20,6 +20,7 @@ parser.add_argument("--random", action='store_true', default=False)
 parser.add_argument("--device", type=str, default='0')
 parser.add_argument("--n_imgs", type=int, default=55000, help='number of adv images to generate')
 parser.add_argument("--rain", action='store_true', default=False, help='train for rain robustness')
+parser.add_argument("--rain_prob", type=float, default=0.7, help='rain probability')
 args = parser.parse_args()
 
 os.environ["CUDA_VISIBLE_DEVICES"] = args.device
@@ -62,7 +63,7 @@ art_model = PyTorchFasterRCNN(
         union=False
     )
 
-attacker = PGDPatch(art_model, rain=args.rain, batch_size=1, eps=1.0, eps_step=0.01, max_iter=200, num_random_init=0, random_eps=False,
+attacker = PGDPatch(art_model, rain=args.rain, rain_prob=args.rain_prob, batch_size=1, eps=1.0, eps_step=0.01, max_iter=200, num_random_init=0, random_eps=False,
                     targeted=False, verbose=True)
 
 # setup dataset
