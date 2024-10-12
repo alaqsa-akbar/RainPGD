@@ -1,4 +1,4 @@
-from attack.utils import add_rain
+from RainPGD.utils import add_rain
 import os
 from PIL import Image
 import numpy as np
@@ -6,12 +6,13 @@ from tqdm import tqdm
 import argparse
 
 parser = argparse.ArgumentParser(description="Generating Adversarial Dataset")
-parser.add_argument("-f", "--folder", type=str, default='./SegmentAndComplete/data/train2017', help='folder containing images')
-parser.add_argument("-n", "--name", type=str, default='rain', help='name of the dataset')
+parser.add_argument("-f", "--folder", type=str, default='./data/train2017', help='folder containing images')
+parser.add_argument("-n", "--name", type=str, default='train', help='name of the dataset')
+parser.add_argument("-o", "--output", type=str, default='./RainyCOCO', help='output directory')
 
 # Define the input and output directories
 input_dir = parser.parse_args().folder
-output_base_dir = './data'
+output_base_dir = parser.parse_args().output 
 name = parser.parse_args().name
 
 # Create output directories if they don't exist

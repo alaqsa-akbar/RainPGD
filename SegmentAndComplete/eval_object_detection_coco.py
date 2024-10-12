@@ -75,6 +75,8 @@ parser.add_argument('--weights_path', type=str, default=None)
 parser.add_argument('--load_mask', action='store_true', default=False, help='load fixed patch mask')
 parser.add_argument('--attack', type=str, default='pgd', help='attack method')
 parser.add_argument('--n_patch', type=int, default=1)
+parser.add_argument('--rain', action='store_true', default=False)
+parser.add_argument('--rain_prob', type=float, default=0.7)
 args = parser.parse_args()
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -246,7 +248,7 @@ else:
     precision_adv = 0
     recall_adv = 0
     if args.attack == 'pgd':
-        attacker = PGDPatch(art_model, batch_size=args.batch_size, eps=args.eps,
+        attacker = PGDPatch(art_model, rain=args.rain, rain_prob=args.rain_prob, batch_size=args.batch_size, eps=args.eps,
                         eps_step=2*args.eps/args.max_iter, max_iter=args.max_iter, num_random_init=0, random_eps=False, targeted=False, verbose=True)
     elif args.attack == 'mim':
         attacker = MIMPatch(art_model, batch_size=args.batch_size, eps=args.eps,

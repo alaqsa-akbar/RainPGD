@@ -4,8 +4,7 @@ $valZipUrl = "http://images.cocodataset.org/zips/val2017.zip"
 $annotationsZipUrl = "http://images.cocodataset.org/annotations/annotations_trainval2017.zip"
 
 # Define the output folder paths
-$segmentAndCompletePath = "./SegmentAndComplete"
-$dataFolderPath = "$segmentAndCompletePath/data"
+$dataFolderPath = "./data"
 $trainZipPath = "$dataFolderPath/train2017.zip"
 $valZipPath = "$dataFolderPath/val2017.zip"
 $annotationsZipPath = "$dataFolderPath/annotations_trainval2017.zip"
