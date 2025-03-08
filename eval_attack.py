@@ -6,6 +6,7 @@ from RainPGD.utils import add_rain
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import presets
 import torch
 import glob
@@ -96,3 +97,137 @@ for batch_idx, data_file in enumerate(tqdm(data_files)):
 coco_evaluator.synchronize_between_processes()
 coco_evaluator.accumulate()
 coco_evaluator.summarize()
+
+# Compute per-class metrics and save them into a CSV.
+coco_eval = coco_evaluator.coco_eval['bbox']
+precision = coco_eval.eval['precision']  # shape: [T, R, K, A, M]
+recall = coco_eval.eval['recall']        # shape: [T, K, A, M]
+
+# Get the current IoU thresholds and find indices
+iou_thrs = coco_eval.params.iouThrs
+idx_50 = np.where(np.abs(iou_thrs - 0.5) < 1e-5)[0][0]
+idx_75 = np.where(np.abs(iou_thrs - 0.75) < 1e-5)[0][0]
+
+# Get maxDets indices
+max_dets = coco_eval.params.maxDets
+idx_1 = 0  # Index for maxDets=1
+idx_10 = 1  # Index for maxDets=10
+idx_100 = 2  # Index for maxDets=100
+idx_max = -1  # Last index (for whatever the max setting is, often 100)
+
+cat_ids = coco_eval.params.catIds
+categories = coco_eval.cocoGt.loadCats(cat_ids)
+cat_id_to_name = {cat['id']: cat['name'] for cat in categories}
+
+results = []
+
+for idx, catId in enumerate(cat_ids):
+    cat_name = cat_id_to_name.get(catId, str(catId))
+    
+    # Compute AP metrics
+    # AP across all IoUs (averaged)
+    prec_all = precision[:, :, idx, 0, idx_max]  # "all" area, max detections
+    valid_all = prec_all > -1
+    ap_all = np.mean(prec_all[valid_all]) if np.any(valid_all) else float('nan')
+    
+    # AP at IoU=0.5
+    prec_50 = precision[idx_50, :, idx, 0, idx_max]
+    valid_50 = prec_50 > -1
+    ap_50 = np.mean(prec_50[valid_50]) if np.any(valid_50) else float('nan')
+    
+    # AP at IoU=0.75
+    prec_75 = precision[idx_75, :, idx, 0, idx_max]
+    valid_75 = prec_75 > -1
+    ap_75 = np.mean(prec_75[valid_75]) if np.any(valid_75) else float('nan')
+    
+    # AP for small, medium, and large objects (across all IoUs)
+    prec_small = precision[:, :, idx, 1, idx_max]
+    valid_small = prec_small > -1
+    ap_small = np.mean(prec_small[valid_small]) if np.any(valid_small) else float('nan')
+    
+    prec_medium = precision[:, :, idx, 2, idx_max]
+    valid_medium = prec_medium > -1
+    ap_medium = np.mean(prec_medium[valid_medium]) if np.any(valid_medium) else float('nan')
+    
+    prec_large = precision[:, :, idx, 3, idx_max]
+    valid_large = prec_large > -1
+    ap_large = np.mean(prec_large[valid_large]) if np.any(valid_large) else float('nan')
+    
+    # AR metrics for different maxDets
+    rec_all_1 = recall[:, idx, 0, idx_1]
+    valid_rec_all_1 = rec_all_1 > -1
+    ar_all_1 = np.mean(rec_all_1[valid_rec_all_1]) if np.any(valid_rec_all_1) else float('nan')
+    
+    rec_all_10 = recall[:, idx, 0, idx_10]
+    valid_rec_all_10 = rec_all_10 > -1
+    ar_all_10 = np.mean(rec_all_10[valid_rec_all_10]) if np.any(valid_rec_all_10) else float('nan')
+    
+    rec_all_100 = recall[:, idx, 0, idx_100]
+    valid_rec_all_100 = rec_all_100 > -1
+    ar_all_100 = np.mean(rec_all_100[valid_rec_all_100]) if np.any(valid_rec_all_100) else float('nan')
+    
+    # AR metrics for small, medium, and large objects
+    rec_small = recall[:, idx, 1, idx_max]
+    valid_rec_small = rec_small > -1
+    ar_small = np.mean(rec_small[valid_rec_small]) if np.any(valid_rec_small) else float('nan')
+    
+    rec_medium = recall[:, idx, 2, idx_max]
+    valid_rec_medium = rec_medium > -1
+    ar_medium = np.mean(rec_medium[valid_rec_medium]) if np.any(valid_rec_medium) else float('nan')
+    
+    rec_large = recall[:, idx, 3, idx_max]
+    valid_rec_large = rec_large > -1
+    ar_large = np.mean(rec_large[valid_rec_large]) if np.any(valid_rec_large) else float('nan')
+    
+    results.append({
+        'Class': cat_name,
+        'AP_all': ap_all,
+        'AP_50': ap_50,
+        'AP_75': ap_75,
+        'AP_small': ap_small,
+        'AP_medium': ap_medium,
+        'AP_large': ap_large,
+        'AR_all_1': ar_all_1,
+        'AR_all_10': ar_all_10,
+        'AR_all_100': ar_all_100,
+        'AR_small': ar_small,
+        'AR_medium': ar_medium,
+        'AR_large': ar_large
+    })
+
+# Add the overall statistics for comparison
+stats = coco_eval.stats
+total_metrics = {
+    'Class': 'Total',
+    'AP_all': stats[0],
+    'AP_50': stats[1],
+    'AP_75': stats[2],
+    'AP_small': stats[3],
+    'AP_medium': stats[4],
+    'AP_large': stats[5],
+    'AR_all_1': stats[6],
+    'AR_all_10': stats[7],
+    'AR_all_100': stats[8],
+    'AR_small': stats[9],
+    'AR_medium': stats[10],
+    'AR_large': stats[11]
+}
+results.append(total_metrics)
+
+# Save to CSV
+eval_type = "normal"
+if args.adv:
+    eval_type = "adversarial"
+if args.rain_adv:
+    eval_type = "rain_adversarial"
+elif args.rain:
+    eval_type = f"rain_{args.rain_prob}"
+
+folder_name = os.path.basename(args.data_folder)
+timestamp = pd.Timestamp.now().strftime("%Y%m%d_%H%M%S")
+
+output_path = f"results/{folder_name}_{eval_type}_{timestamp}.csv"
+os.makedirs("results", exist_ok=True)
+df = pd.DataFrame(results)
+df.to_csv(output_path, index=False)
+print(f"Saved per-class metrics to {output_path}")
