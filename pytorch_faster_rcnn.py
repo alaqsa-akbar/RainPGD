@@ -333,7 +333,7 @@ class PyTorchFasterRCNN(ObjectDetectorMixin, PyTorchEstimator):
 
         assert grads.shape == x.shape
 
-        return grads, loss
+        return grads, loss.detach().item()
 
     def predict(self, x: np.ndarray, batch_size: int = 128, **kwargs) -> List[Dict[str, np.ndarray]]:
         """

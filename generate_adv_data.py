@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 
 
 parser = argparse.ArgumentParser(description="Generating Adversarial Dataset")
+parser.add_argument("--iter", type=int, default=200, help='number of adverserial training iterations')
 parser.add_argument("--world_size", type=int, default=1, help='total number of jobs')
 parser.add_argument("--rank", type=int, default=0, help='job ID')
 parser.add_argument("--patch_size", type=int, default=100)
@@ -44,6 +45,7 @@ img_dir = os.path.join(save_dir, 'image')
 losses_dir = os.path.join(save_dir, 'losses')
 os.makedirs(data_dir, exist_ok=True)
 os.makedirs(img_dir, exist_ok=True)
+os.makedirs(losses_dir, exist_ok=True)
 
 # setup model
 paths.set_mode("host")
@@ -73,7 +75,7 @@ art_model = PyTorchFasterRCNN(
         union=False
     )
 
-attacker = PGDPatch(art_model, rain=args.rain, rain_prob=args.rain_prob, batch_size=1, eps=1.0, eps_step=0.01, max_iter=200, num_random_init=0, random_eps=False,
+attacker = PGDPatch(art_model, rain=args.rain, rain_prob=args.rain_prob, batch_size=1, eps=1.0, eps_step=0.01, max_iter=args.iter, num_random_init=0, random_eps=False,
                     targeted=False, verbose=True)
 
 # setup dataset
@@ -109,6 +111,9 @@ for i, data in enumerate(pbar):
     x_adv, losses = attacker.generate(x, y=label, patch_height=patch_height, patch_width=patch_width, xmin=xmin, ymin=ymin)
     
     losses_fn = os.path.join(losses_dir, f'{i}.png')
+    plt.clf()
+    plt.xlabel('Iterations')
+    plt.ylabel('Loss')
     plt.plot(losses)
     plt.savefig(losses_fn)
 
