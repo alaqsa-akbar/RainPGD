@@ -13,6 +13,7 @@ import numpy as np
 import cv2
 import os
 import argparse
+import matplotlib.pyplot as plt
 
 
 parser = argparse.ArgumentParser(description="Generating Adversarial Dataset")
@@ -40,6 +41,7 @@ else:
     save_dir = f'{save_dir}/normal/{args.image_set}'
 data_dir = os.path.join(save_dir, 'data')
 img_dir = os.path.join(save_dir, 'image')
+losses_dir = os.path.join(save_dir, 'losses')
 os.makedirs(data_dir, exist_ok=True)
 os.makedirs(img_dir, exist_ok=True)
 
@@ -104,7 +106,11 @@ for i, data in enumerate(pbar):
     else:
         xmin = 0
         ymin = 0
-    x_adv = attacker.generate(x, y=label, patch_height=patch_height, patch_width=patch_width, xmin=xmin, ymin=ymin)
+    x_adv, losses = attacker.generate(x, y=label, patch_height=patch_height, patch_width=patch_width, xmin=xmin, ymin=ymin)
+    
+    losses_fn = os.path.join(losses_dir, f'{i}.png')
+    plt.plot(losses)
+    plt.savefig(losses_fn)
 
     # save adv img
     img_fn = os.path.join(img_dir, f'{i:06d}.png')

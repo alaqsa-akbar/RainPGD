@@ -382,8 +382,9 @@ class ProjectedGradientDescentNumpy(ProjectedGradientDescentCommon):
             else:
                 adv_x = x.astype(ART_NUMPY_DTYPE)
 
+            losses = []
             for i_max_iter in trange(self.max_iter, desc="PGD - Iterations", disable=not self.verbose):
-                adv_x = self._compute(
+                adv_x, loss = self._compute(
                     adv_x,
                     x,
                     targets,
@@ -393,5 +394,6 @@ class ProjectedGradientDescentNumpy(ProjectedGradientDescentCommon):
                     self._project,
                     self.num_random_init > 0 and i_max_iter == 0,
                 )
+                losses.append(loss)
 
-        return adv_x
+        return adv_x, losses

@@ -217,11 +217,11 @@ results.append(total_metrics)
 # Save to CSV
 eval_type = "normal"
 if args.adv:
-    eval_type = "adversarial"
+    eval_type = "pgd"
 if args.rain_adv:
-    eval_type = "rain_adversarial"
-elif args.rain:
-    eval_type = f"rain_{args.rain_prob}"
+    eval_type = "rain_pgd"
+if args.rain:
+    eval_type = f"{eval_type}_rain_{args.rain_prob}"
 
 folder_name = os.path.basename(args.data_folder)
 timestamp = pd.Timestamp.now().strftime("%Y%m%d_%H%M%S")
