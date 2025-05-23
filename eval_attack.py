@@ -83,6 +83,7 @@ for batch_idx, data_file in enumerate(tqdm(data_files)):
         rain_type = np.random.choice(['weak', 'heavy', 'torrential'])
         if np.random.random() <= args.rain_prob:
             x_adv[0] = add_rain(x_adv[0], rain_type=rain_type, normalized=True)
+            x[0] = add_rain(x[0], rain_type=rain_type, normalized=True)
 
     if args.adv:
         y_pred, x_processed, mask, raw_mask = art_model.predict(x_adv)
