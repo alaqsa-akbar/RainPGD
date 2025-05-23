@@ -333,7 +333,7 @@ class PyTorchFasterRCNN(ObjectDetectorMixin, PyTorchEstimator):
 
         assert grads.shape == x.shape
 
-        return grads
+        return grads, loss.detach().item()
 
     def predict(self, x: np.ndarray, batch_size: int = 128, **kwargs) -> List[Dict[str, np.ndarray]]:
         """
@@ -407,8 +407,27 @@ class PyTorchFasterRCNN(ObjectDetectorMixin, PyTorchEstimator):
         :return: Loss values.
         :rtype: Format as expected by the `model`
         """
-        raise NotImplementedError
-    
+        import torch
+
+        loss_components, _ = self._get_losses(x=x, y=y)
+
+        # Compute the loss
+        if self.weight_dict is None:
+            loss = sum(loss_components[loss_name] for loss_name in self.attack_losses if loss_name in loss_components)
+        else:
+            loss = sum(
+                loss_component * self.weight_dict[loss_name]
+                for loss_name, loss_component in loss_components.items()
+                if loss_name in self.weight_dict
+            )
+
+        assert isinstance(loss, torch.Tensor)
+
+        if isinstance(x, torch.Tensor):
+            return loss
+
+        return loss.detach().cpu().numpy()
+
     def native_label_is_pytorch_format(self) -> bool:
         """
         Are the native labels in PyTorch format [x1, y1, x2, y2]?

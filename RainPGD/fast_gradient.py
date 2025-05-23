@@ -302,7 +302,7 @@ class FastGradientMethod(EvasionAttack):
                 logger.info("Using model predictions as correct labels for FGM.")
                 y = self.estimator.predict(x, batch_size=self.batch_size)
 
-            adv_x_best = self._compute(
+            adv_x_best, loss = self._compute(
                 x,
                 x,
                 y,
@@ -313,7 +313,7 @@ class FastGradientMethod(EvasionAttack):
                 self.num_random_init > 0,
             )
 
-        return adv_x_best
+        return adv_x_best, loss
 
     def _check_params(self) -> None:
 
@@ -388,7 +388,8 @@ class FastGradientMethod(EvasionAttack):
         tol = 10e-8
 
         # Get gradient wrt loss; invert it if attack is targeted
-        grad = self.estimator.loss_gradient(rainy_batch, batch_labels) * (1 - 2 * int(self.targeted))
+        loss_grad, loss = self.estimator.loss_gradient(rainy_batch, batch_labels)
+        grad = loss_grad * (1 - 2 * int(self.targeted))
 
         # Check for NaN before normalisation an replace with 0
         if np.isnan(grad).any():
@@ -429,7 +430,7 @@ class FastGradientMethod(EvasionAttack):
 
         assert batch.shape == grad.shape
 
-        return grad
+        return grad, loss
 
     def _apply_perturbation(
         self, batch: np.ndarray, perturbation: np.ndarray, eps_step: Union[int, float, np.ndarray]
@@ -490,7 +491,7 @@ class FastGradientMethod(EvasionAttack):
                     mask_batch = mask[batch_index_1:batch_index_2]
 
             # Get perturbation
-            perturbation = self._compute_perturbation(batch, batch_labels, mask_batch)
+            perturbation, loss = self._compute_perturbation(batch, batch_labels, mask_batch)
 
             # Compute batch_eps and batch_eps_step
             if isinstance(eps, np.ndarray) and isinstance(eps_step, np.ndarray):
@@ -528,7 +529,7 @@ class FastGradientMethod(EvasionAttack):
                     )
                     x_adv[batch_index_1:batch_index_2] = x_init[batch_index_1:batch_index_2] + perturbation
 
-        return x_adv
+        return x_adv, loss
 
     @staticmethod
     def _get_mask(x: np.ndarray, **kwargs) -> np.ndarray:
